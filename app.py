@@ -315,7 +315,7 @@ def clean_and_store_data(df, csv_filename='cleaned_reviews.csv'):
 
 def main():
 
-    st.title("SentiMart📦: Amazon Sentiment App")
+    st.title("Amazon Product Reviews: NLP Project")
 
     option = st.sidebar.selectbox("Choose an option", ["Write Review", "Enter Amazon URL", "Import CSV"])
 
