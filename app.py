@@ -288,126 +288,30 @@ def visualize_keyword_frequency(df):
         st.write(info_text)
 
     all_words = ' '.join(df['Description'])
-    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(all_words)
+    wordcloud = WordCloud(width=800, height=400, background_color='sea blue').generate(all_words)
     plt.figure(figsize=(10, 6))
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     st.pyplot()
-
-def import_data(file_path):
-    df = pd.read_csv(file_path)
-    return df
-
-def clean_and_store_data(df, csv_filename='cleaned_reviews.csv'):
-    # Clean data
-    df['Description'] = df['Description'].apply(lambda x: re.sub(r'[^a-zA-Z0-9\s]', '', x))
-    df['Description'] = df['Description'].apply(lambda x: x.lower())
-    stop_words = set(stopwords.words('english'))
-    df['Description'] = df['Description'].apply(lambda x: ' '.join([word for word in word_tokenize(x) if word.lower() not in stop_words]))
-    lemmatizer = WordNetLemmatizer()
-    df['Description'] = df['Description'].apply(lambda x: ' '.join([lemmatizer.lemmatize(word) for word in word_tokenize(x)]))
-
-    # Store cleaned data in a new CSV
-    cleaned_csv_path = csv_filename
-    df.to_csv(cleaned_csv_path, index=False)
-    
-    return cleaned_csv_path
-
 def main():
+    st.title("✨ Amazon Review Sentiment Analysis ✨")
 
-    st.title("Amazon Product Reviews: NLP Project")
+    # Sidebar Section with No Dropdown
+    st.sidebar.header("🛠 Options")
+    st.sidebar.markdown("✅ **Write a Review**")  # Now just a text label instead of dropdown
 
-    option = st.sidebar.selectbox("Choose an option", ["Write Review", "Enter Amazon URL", "Import CSV"])
+    st.subheader("📝 Enter Your Review Below")
 
-    if option == "Import CSV":
-        st.header("Import CSV for Analysis")
+    user_input = st.text_area("Write your review here:")
 
-        uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-
-        if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
-
-            df[['Sentiment', 'Confidence']] = df['Description'].apply(analyze_sentiment_st).apply(pd.Series)
-
-            st.subheader("Data Preview:")
-            st.write(df.head())
-
-            st.subheader("Visualized Data:")
-            
-            st.subheader("Sentiment Distribution:")
-            info_text = '''
-                - This visualization represents the distribution of sentiment categories in the reviews.
-                - Each bar represents a different sentiment category: Positive, Negative, or Neutral.
-                - The size of each bar indicates the proportion of reviews belonging to that sentiment category.
-                - For example, if the "Positive" bar is larger, it means there are more positive reviews compared to negative or neutral ones
-            '''
-            with st.expander("💡Info"):
-                st.write(info_text)
-
-            sentiment_counts = df['Sentiment'].value_counts()
-            st.bar_chart(sentiment_counts)
-
-            st.subheader("Pie Chart:")
-            visualize_pie_chart(df)
-
-            st.subheader("Histogram:")
-            visualize_histogram(df)
-            
-            st.subheader("Distribution of Review Length:")
-            visualize_review_length_distribution(df)
-            
-            st.subheader("Comparison of Sentiment Across Products:")
-            compare_sentiment_across_products(df)
-
-            st.subheader("Time Series Analysis of Product:")
-            visualize_time_series(df)
-            
-            st.subheader("Keyword Frequency Analysis:")
-            visualize_keyword_frequency(df)
-
-    elif option == "Write Review":
-        st.header("Write Review for Analysis")
-
-        user_input = st.text_area("Enter your review:")
-
-        if st.button("Analyze"):
-            if user_input:
-                result, confidence = analyze_sentiment_st(user_input)
-                st.subheader("Sentiment Analysis Result:")
-                st.write(f"Sentiment: {result}")
-                st.write(f"Confidence Score: {confidence}")
-
-            else:
-                st.warning("Please enter a review for analysis.")
-
-    elif option == "Enter Amazon URL":
-        st.header("Enter Your Favourite Amazon product's URL")
-
-        try:
-            URL_input = st.text_input("Enter Valid Amazon URL:")
-        except ValueError as e:
-            st.warning("Error: "+e)
-
-        page_len = st.slider("Select the number of pages to scrape", min_value=1, max_value=10, value=1)
-
-        if st.button("Analyze"):
-            if URL_input:
-                html_datas = reviewsHtml(URL_input, page_len)
-                df_reviews = process_data(html_datas, page_len)
-                df_reviews = clean_data(df_reviews)
-                cleaned_csv_path = clean_and_store_data(df_reviews)
-
-                df_cleaned = import_data(cleaned_csv_path)
-                df_cleaned[['Sentiment', 'Confidence']] = df_cleaned['Description'].apply(analyze_sentiment_st).apply(pd.Series)
-
-                st.subheader("Data Preview after Cleaning:")
-
-                st.write(df_cleaned.head())
-
-                visualize_data(df_cleaned)
-
-            else:
-                st.warning("Please enter a URL first!")
-
+    if st.button("🔍 Analyze Sentiment"):
+        if user_input:
+            result, confidence = analyze_sentiment_st(user_input)
+            st.subheader("📊 Sentiment Analysis Result:")
+            st.success(f"🟢 Sentiment: **{result}**")
+            st.info(f"📈 Confidence Score: **{confidence:.2f}%**")
+        else:
+            st.warning("⚠️ Please enter a review before analyzing.")
+    
 if __name__ == "__main__":
     main()
